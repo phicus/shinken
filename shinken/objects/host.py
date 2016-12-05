@@ -558,6 +558,27 @@ class Host(SchedulingItem):
 
         # Keep the string of the last command launched for this element
         'last_check_command': StringProp(default=''),
+
+        'cpe_address':
+            StringProp(default='', fill_brok=['full_status'], retention=True),
+
+        'cpe_registration_host':
+            StringProp(default='', fill_brok=['full_status'], retention=True),
+
+        'cpe_registration_id':
+            StringProp(default='', fill_brok=['full_status'], retention=True),
+
+        'cpe_registration_state':
+            StringProp(default='', fill_brok=['full_status'], retention=True),
+
+        'cpe_registration_tags':
+            ListProp(default='', fill_brok=['full_status'], retention=True, split_on_coma=True),
+
+        'cpe_connection_request_url':
+            StringProp(default='', fill_brok=['full_status'], retention=True),
+
+        'cpe_ipleases':
+            StringProp(default='', fill_brok=['full_status'], retention=True),
     })
 
     # Hosts macros and prop that give the information

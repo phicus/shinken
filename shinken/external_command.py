@@ -403,6 +403,21 @@ class ExternalCommandManager:
             {'global': False, 'args': ['host', 'host']},
         'ADD_SIMPLE_POLLER':
             {'global': True, 'internal': True, 'args': [None, None, None, None]},
+
+        'REBOOT_HOST':
+            {'global': False, 'args': ['host']},
+        'SYNC_TIME_HOST':
+            {'global': False, 'args': ['host']},
+        'RESTORE_HOST':
+            {'global': False, 'args': ['host']},
+        'RESTORE_FACTORY_HOST':
+            {'global': False, 'args': ['host']},
+        'UNPROVISION_HOST':
+            {'global': False, 'args': ['host']},
+        'UNPROVISION_ONU':
+            {'global': False, 'args': ['host', None]},
+        'CHANGE_HOST_VAR':
+            {'global': False, 'args': ['host', None, None]},
     }
 
     def __init__(self, conf, mode):
@@ -2031,6 +2046,45 @@ class ExternalCommandManager:
         r.fill_potential_satellites_by_type('pollers')
         logger.debug("Poller %s added", poller_name)
         logger.debug("Potential %s", str(r.get_potential_satellites_by_type('poller')))
+
+
+    def REBOOT_HOST(self, host):
+        b = Brok('reboot_host', {'host_name': host.host_name})
+        host.broks.append(b)
+
+
+    def SYNC_TIME_HOST(self, host):
+        b = Brok('sync_time_host', {'host_name': host.host_name})
+        host.broks.append(b)
+
+
+    def RESTORE_HOST(self, host):
+        b = Brok('restore_host', {'host_name': host.host_name})
+        host.broks.append(b)
+
+
+    def RESTORE_FACTORY_HOST(self, host):
+        b = Brok('restore_factory_host', {'host_name': host.host_name})
+        host.broks.append(b)
+
+
+    def UNPROVISION_HOST(self, host):
+        b = Brok('unprovision_host', {'host_name': host.host_name})
+        host.broks.append(b)
+
+
+    def UNPROVISION_ONU(self, host, onu_index):
+        b = Brok('unprovision_onu', {'host_name': host.host_name, 'onu_index': onu_index})
+        host.broks.append(b)
+
+
+    def CHANGE_HOST_VAR(self, host, varname, varvalue):
+        cls = host.__class__
+        if varname in cls.running_properties:
+            setattr(host, varname, varvalue)
+            self.sched.get_and_register_status_brok(host)
+        else:
+            logger.info("[EXTERNAL COMMAND] CHANGE_HOST_VAR: varname=%s not writable", varname)
 
 
 if __name__ == '__main__':
