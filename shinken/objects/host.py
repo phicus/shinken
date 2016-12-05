@@ -635,6 +635,7 @@ class Host(SchedulingItem):
         'STATUS':            'get_status',
         'SHORTSTATUS':       'get_short_status',
         'FULLNAME':          'get_full_name',
+        'CPECONNECTIONREQUESTURL':  'cpe_connection_request_url',
     }
 
     # Manage ADDRESSX macros by adding them dynamically
