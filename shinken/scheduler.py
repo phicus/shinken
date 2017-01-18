@@ -281,7 +281,8 @@ class Scheduler(object):
     def run_external_command(self, command):
         logger.debug("scheduler resolves command '%s'", command)
         ext_cmd = ExternalCommand(command)
-        self.external_command.resolve_command(ext_cmd)
+        if hasattr(self, 'external_command'):
+            self.external_command.resolve_command(ext_cmd)
 
 
     # Add_Brok is a bit more complex than the others, because
