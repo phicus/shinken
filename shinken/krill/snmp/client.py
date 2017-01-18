@@ -63,6 +63,8 @@ class SnmpClient(object):
         )
         self.mibBuilder = builder.MibBuilder()
 
+        self.mibSources
+        logger.info("[SNMP] client %s: %s / %s", self, self.mibSources, self.mibs)
         extraMibSources = tuple([builder.DirMibSource(d) for d in self.mibSources])
         totalMibSources = extraMibSources + self.mibBuilder.getMibSources()
         self.mibBuilder.setMibSources( *totalMibSources )
@@ -212,10 +214,11 @@ class SnmpClient(object):
                 )
             error = self.handle_snmp_error(errorIndication, errorStatus, errorIndex, varBinds)
             if error:
+                msg = "client=%s oid=%s error=%s" % (self, oid, error['errorIndication'])
                 if str(error['errorIndication']) == "OIDs are not increasing":
-                    r = errind.OidNotIncreasing(error['errorIndication'])
+                    r = errind.OidNotIncreasing(msg)
                 else:
-                    r = SnmpRuntimeError(error['errorIndication'])
+                    r = SnmpRuntimeError(msg)
                 raise r
             else:
                 return [x[0] for x in varBinds]
@@ -224,11 +227,16 @@ class SnmpClient(object):
 
 
     def walk(self, oid, subindex=None, timeout=3, retries=1, **kwargs):
+        # logger.info("[SNMP] WALK oid, subindex %r %r", oid, subindex)
         if len(oid) == 2:
             mib, symbol = oid
+            # logger.info("[SNMP] WALK mib, symbol %r %r", mib, symbol)
             mibVariable = cmdgen.MibVariable(mib, symbol).loadMibs(mib)
+            # logger.info("[SNMP] WALK mibVariable1 %r", mibVariable)
             mibVariable.resolveWithMib(self.mibViewController)
+            # logger.info("[SNMP] WALK mibVariable2 %r", mibVariable)
             oid_to_walk = mibVariable.asTuple()
+            # logger.info("[SNMP] WALK oid_to_walk %r", oid_to_walk)
         else:
             oid_to_walk = oid
 
@@ -236,15 +244,20 @@ class SnmpClient(object):
             oid_to_walk += subindex
 
         data = self._next_cmd_data(oid_to_walk, timeout, retries, **kwargs)
+        # logger.info("[SNMP] WALK data -> %d", len(data))
 
         raw = []
         for oid, value in data:
+            # logger.info("[SNMP] WALK oid, value %s %s", oid, value)
             mv = self.get_resolved_mib_variable(oid)
             modName, symName, indices = mv.getMibSymbol()
+            # logger.info("[SNMP] WALK modName, symName, indices %s %s %s", modName, symName, indices)
             index_string = tuple([x.prettyPrint() for x in indices])
+            # logger.info("[SNMP] WALK index_string %s", index_string)
             try:
                 #print 'value %s %s %r --> %s' % (type(value), value, mv.getMibNode().syntax, mv.getMibNode().syntax.clone(value).prettyPrint())
                 final_value = mv.getMibNode().syntax.clone(value).prettyPrint()
+                # logger.info("[SNMP] WALK final_value %s", final_value)
             except AttributeError:
                 symName += index_string
                 final_value = "ERROR: %s -> %s" % (index_string, value.prettyPrint())
@@ -252,7 +265,9 @@ class SnmpClient(object):
 
             try:
                 i = [i for i,d in raw].index(index_string)
+                # logger.info("[SNMP] WALK i %s", i)
                 ti, td = raw[i]
+                # logger.info("[SNMP] WALK ti, td %s %s", ti, td)
                 td[symName] = utils.to_native(value)
             except Exception as exc:
                 raw.append((index_string, {symName: final_value}, ))
@@ -264,3 +279,25 @@ class SnmpSetError(Exception):
 
 class SnmpRuntimeError(Exception):
     pass
+
+if __name__ == '__main__':
+    import sys
+    from pysnmp import debug
+
+    # debug.setLogger(debug.Debug('all'))
+
+    mib_dir = sys.argv[1] #'/home/irojo/dev/krill-modules/krill-gpon/module/snmpolt/zte/pymibs'
+    mib = sys.argv[2] #'ZTE-AN-GPON-SERVICE-MIB'
+    symbol = sys.argv[3] #'zxAnGponOnuMgmtName'
+
+    mibBuilder = builder.MibBuilder()
+    totalMibSources = (builder.DirMibSource(mib_dir),) + mibBuilder.getMibSources()
+    # print 'totalMibSources', totalMibSources
+    mibBuilder.setMibSources(*totalMibSources)
+    # mibBuilder.loadModules(mib)
+
+    mibViewController = view.MibViewController(mibBuilder)
+
+    mibVariable = cmdgen.MibVariable(mib, symbol).loadMibs(mib)
+    mibVariable.resolveWithMib(mibViewController)
+    print 'mibVariable.asTuple()', mibVariable.asTuple()

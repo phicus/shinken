@@ -46,10 +46,8 @@ class TimeoutQueue(Queue):
 
 
     def reset(self):
-        print 'TFLK reset1'
         while not self.empty():
-            print 'TFLK reset2', self.get()
-        print 'TFLK reset3'
+            self.get()
         self.failed_loops = -1
 
 
@@ -124,7 +122,7 @@ class TimeoutQueue(Queue):
 class Worker(Thread):
 
     def __init__(self, requests, responses, name):
-        Thread.__init__(self, name=name, args=(), kwargs=None, verbose=True)
+        Thread.__init__(self, name=name, args=(), kwargs=None, verbose=False)
         self.requests = requests
         self.responses = responses
         self.cmdGen = cmdgen.CommandGenerator()
@@ -618,7 +616,7 @@ def test_lenovo():
     p = SnmpPoller(threads=6,timeout=10)    
     # p.set_mib_mibsources(mibs=['DOCS-CABLE-DEVICE-MIB'], mibSources=['/var/lib/shinken/modules/krill-docsis/module/snmpcmts/pymibs'])
     import logging
-    logger.setLevel(logging.DEBUG)
+    # logger.setLevel(logging.DEBUG)
 
     while True:
         os = [
