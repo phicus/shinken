@@ -32,9 +32,11 @@ def process_perfdata(obj, s, prefix=''):
         # print 'm,M', metric.value, metric.min, metric.max
 
         if float(metric.value) < float(metric.min):
-            return 'UNKNOWN', '%s=%s%s below min(%s%s)' % (metric.name, metric.value, metric.uom, metric.min, metric.uom)
+            return 'UNKNOWN', '%s=%s%s below min(%s%s)' % (metric.name, metric.value, metric.uom, metric.min,
+                                                           metric.uom)
         if float(metric.value) > float(metric.max):
-            return 'UNKNOWN', '%s=%s%s above max(%s%s)' % (metric.name, metric.value, metric.uom, metric.max, metric.uom)
+            return 'UNKNOWN', '%s=%s%s above max(%s%s)' % (metric.name, metric.value, metric.uom, metric.max,
+                                                           metric.uom)
 
         thresholds_name = '%s%s_thresholds' % (prefix, metric.name)
         if hasattr(obj, thresholds_name):
@@ -74,7 +76,9 @@ class PerfDef(object):
 
 
     def __str__(self):
-        return "p%s/f%s/u%s/m%s/M%s lw%s/lc%s/w%s/c%s" % (self.pattern, self.format, self.unit, self.min, self.max, self.low_critical, self.low_warning, self.warning, self.critical)
+        return "p%s/f%s/u%s/m%s/M%s lw%s/lc%s/w%s/c%s" % (self.pattern, self.format, self.unit, self.min, self.max,
+                                                          self.low_critical, self.low_warning, self.warning,
+                                                          self.critical)
 
 
     @property

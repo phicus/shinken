@@ -70,7 +70,8 @@ class TechRegenerator(object):
             key = CPEKEY_BY_TECH[self.tech]
             h = Host({})
             self.update_element(h, data)
-            # safe_print("TECH Creating a host: %s/%s in instance %d" % (hname, data.get('hostgroups', 'hgs?'), inst_id))
+            # safe_print("TECH Creating a host: %s/%s in instance %d" % (hname, data.get('hostgroups', 'hgs?'),
+            #                                                            inst_id))
 
             if key in customs:
                 self.indices[customs.get(key).lower()] = TechCpe(hname, data, self.customs)
