@@ -45,9 +45,9 @@ def _itemid_callback(itemid):
 
 def _itemdata_callback(itemdata, field):
     try:
-      return itemdata[field]
+        return itemdata[field]
     except:
-      pass
+        pass
 
 
 def print_snmptable(snmp_client, mib, table, prefixlen=0, itemid_callback=None):
@@ -61,16 +61,16 @@ def print_snmptable(snmp_client, mib, table, prefixlen=0, itemid_callback=None):
 def do_print_snmptable(snmptable, itemid_callback=None):
     real_itemid_callback = itemid_callback if itemid_callback else _itemid_callback
     try:
-      idW = max([len(real_itemid_callback(i)) for i,d in table]) + 1
+        idW = max([len(real_itemid_callback(i)) for i, d in table]) + 1
     except:
-      idW = 10
+        idW = 10
     print '-' * idW,
 
     snmptable_fields = snmptable[0][1].keys()
-    fieldsW={}
+    fieldsW = {}
     for field in snmptable_fields:
         width = len(field)
-        for i,d in snmptable:
+        for i, d in snmptable:
             internal_field = CamelCase2_(field)
             string_to_len = _itemdata_callback(d, internal_field) or '--'
             width = max([width, len(string_to_len)])
@@ -79,7 +79,7 @@ def do_print_snmptable(snmptable, itemid_callback=None):
         print ('{0:>{width}s}'.format(field, width=width)),
     print
 
-    for i,d in snmptable:
+    for i, d in snmptable:
         print ('{0:>{width}s}'.format(real_itemid_callback(i), width=idW)),
         for field in snmptable_fields:
             print ('{0:>{width}s}'.format(_itemdata_callback(d, CamelCase2_(field)), width=fieldsW[field])),
@@ -96,9 +96,9 @@ def print_snmplist(snmp_client, mib, table, prefixlen=0, itemid_callback=None):
 
 def do_print_snmplist(snmptable, itemid_callback=None):
     real_itemid_callback = itemid_callback if itemid_callback else _itemid_callback
-    #width = max([len(field) for field in snmptable_fields]) + 3
+    # width = max([len(field) for field in snmptable_fields]) + 3
     width = 25
-    for itemid,itemdata in snmptable:
+    for itemid, itemdata in snmptable:
         print 'id:', real_itemid_callback(itemid)
         for field in itemdata.keys():
             print '  {0:{width}s}: {1:s}'.format(field, _itemdata_callback(itemdata, field), width=width)

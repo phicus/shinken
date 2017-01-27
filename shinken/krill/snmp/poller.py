@@ -62,21 +62,26 @@ class TimeoutQueue(Queue):
             return True
 
         if self.last_unfinished_tasks > self.unfinished_tasks:
-            logger.info('[SnmpPoller] tasks_are_working last=%d <- unfinished=%d', self.last_unfinished_tasks, self.unfinished_tasks)
+            logger.info('[SnmpPoller] tasks_are_working last=%d <- unfinished=%d',
+                        self.last_unfinished_tasks, self.unfinished_tasks)
             self.last_unfinished_tasks = self.unfinished_tasks
             return True
         else:
             self.failed_loops += 1
             if self.failed_loops >= MAX_FAILED_LOOPS:
-                logger.info("[SnmpPoller] tasks_are_working (self.failed_loops >= MAX_FAILED_LOOPS!!) unfinished_tasks=%d init_unfinished_tasks=%d", self.unfinished_tasks, self.init_unfinished_tasks)
+                logger.info("[SnmpPoller] tasks_are_working (self.failed_loops >= MAX_FAILED_LOOPS!!) unfinished_tasks=%d init_unfinished_tasks=%d",
+                            self.unfinished_tasks, self.init_unfinished_tasks)
                 try:
-                    pct_unfinished_tasks = 100 * self.unfinished_tasks/float(self.init_unfinished_tasks)
+                    pct_unfinished_tasks = 100 * self.unfinished_tasks / float(self.init_unfinished_tasks)
                 except:
-                    logger.warning("[SnmpPoller] tasks_are_working: unfinished_tasks=%d init_unfinished_tasks=%d", self.unfinished_tasks, self.init_unfinished_tasks)
+                    logger.warning("[SnmpPoller] tasks_are_working: unfinished_tasks=%d init_unfinished_tasks=%d",
+                                   self.unfinished_tasks, self.init_unfinished_tasks)
                     pct_unfinished_tasks = 0
 
-                if pct_unfinished_tasks < GOOD_ENOUGH_FINISHED_TASKS_PERCENTAGE or self.unfinished_tasks < GOOD_ENOUGH_FINISHED_TASKS_NUMBER:
-                    raise GoodEnoughSnmpPollerException("Unfinished tasks: %d (%.2f%%)" % (self.unfinished_tasks, pct_unfinished_tasks))
+                if pct_unfinished_tasks < GOOD_ENOUGH_FINISHED_TASKS_PERCENTAGE or 
+                self.unfinished_tasks < GOOD_ENOUGH_FINISHED_TASKS_NUMBER:
+                    raise GoodEnoughSnmpPollerException("Unfinished tasks: %d (%.2f%%)" %
+                                                        (self.unfinished_tasks, pct_unfinished_tasks))
                 else:
                     return False
             else:
@@ -92,10 +97,11 @@ class TimeoutQueue(Queue):
         try:
             endtime = time.time() + timeout
             while self.unfinished_tasks:
-                self.all_tasks_done.wait(1) #let task start
+                self.all_tasks_done.wait(1)  # let task start
                 remaining = endtime - time.time()
                 logger.info("[SnmpPoller] time remaining: %s unfinished tasks: %d", remaining, self.unfinished_tasks)
-                syslog.syslog(syslog.LOG_DEBUG, "[SnmpPoller] time remaining: %s unfinished tasks: %d" % (remaining, self.unfinished_tasks))
+                syslog.syslog(syslog.LOG_DEBUG, "[SnmpPoller] time remaining: %s unfinished tasks: %d" % (
+                    remaining, self.unfinished_tasks))
                 if not self.tasks_are_working():
                     raise TaskAreNotWorkingSnmpPollerException("[SnmpPoller] tasks are not working!")
 
@@ -109,14 +115,16 @@ class TimeoutQueue(Queue):
                 self.all_tasks_done.release()
             # except RuntimeError, exc:
             except Exception, exc:
-                logger.warning("[SnmpPoller] join_with_timeout->Exception->self.all_tasks_done.release RuntimeError (type=%s: %s)!", type(exc), exc)
+                logger.warning(
+                    "[SnmpPoller] join_with_timeout->Exception->self.all_tasks_done.release RuntimeError (type=%s: %s)!", type(exc), exc)
         else:
             logger.info("[SnmpPoller] join_with_timeout else!")
             try:
                 self.all_tasks_done.release()
             # except RuntimeError, exc:
             except Exception, exc:
-                logger.warning("[SnmpPoller] join_with_timeout->else->self.all_tasks_done.release RuntimeError (type=%s: %s)!", type(exc), exc)
+                logger.warning(
+                    "[SnmpPoller] join_with_timeout->else->self.all_tasks_done.release RuntimeError (type=%s: %s)!", type(exc), exc)
 
 
 class Worker(Thread):
@@ -171,12 +179,13 @@ class Worker(Thread):
         banned_transportAddr = []
 
         while True:
-        # while not self.requests.empty():
+            # while not self.requests.empty():
             authData, transportTarget, varNames, method = self.requests.get()
             cbCtx = (authData, transportTarget)
-            
+
             logger.debug('RUN-1 %s %s %s m=%s', self, transportTarget.transportAddr, banned_transportAddr, method) 
-            syslog.syslog(syslog.LOG_DEBUG, 'RUN-1 %s %s %s m=%s' % (self, transportTarget.transportAddr, banned_transportAddr, method))
+            syslog.syslog(syslog.LOG_DEBUG, 'RUN-1 %s %s %s m=%s' %
+                          (self, transportTarget.transportAddr, banned_transportAddr, method))
             if transportTarget.transportAddr[0] not in banned_transportAddr:
                 if method == 'get':
                     errorIndication, errorStatus, errorIndex, varBinds = self.cmdGen.getCmd(
@@ -209,7 +218,7 @@ class ThreadPool:
         self.responses = []
         for thread_id in range(num_threads):
             # self.workers.append(Worker(self.requests, self.responses, name='th#%d'%thread_id))
-            Worker(self.requests, self.responses, name='th#%d'%thread_id)
+            Worker(self.requests, self.responses, name='th#%d' % thread_id)
 
         self.reset()
 
@@ -260,7 +269,7 @@ class SnmpPoller(object):
 
 
     def init(self):
-        if self.pool == None:
+        if self.pool is None:
             self.pool = ThreadPool(self.threads)
 
 
@@ -272,9 +281,9 @@ class SnmpPoller(object):
         self.mibBuilder = builder.MibBuilder()
         extraMibSources = tuple([builder.DirMibSource(d) for d in self.mibSources])
         totalMibSources = extraMibSources + self.mibBuilder.getMibSources()
-        self.mibBuilder.setMibSources( *totalMibSources )
+        self.mibBuilder.setMibSources(*totalMibSources)
         if self.mibs:
-            self.mibBuilder.loadModules( *self.mibs )
+            self.mibBuilder.loadModules(*self.mibs)
         self.mibViewController = view.MibViewController(self.mibBuilder)
 
 
@@ -303,7 +312,7 @@ class SnmpPoller(object):
                 mibVariable = cmdgen.MibVariable(*field_property.oid)
                 mibVariable.resolveWithMib(self.mibViewController)
                 modName, symName, indices = mibVariable.getMibSymbol()
-                
+
                 if field_property.method == 'get':
                     # get_mib_variables.append(mibVariable)
                     target_gets_def.append(mibVariable)
@@ -324,9 +333,9 @@ class SnmpPoller(object):
             self.targets.append((
                 cmdgen.CommunityData(object_to_poll.community, mpModel=0),
                 cmdgen.UdpTransportTarget((object_to_poll.ip, object_to_poll.port),
-                    timeout=object_to_poll.timeout,
-                    retries=object_to_poll.retries
-                ),
+                                          timeout=object_to_poll.timeout,
+                                          retries=object_to_poll.retries
+                                          ),
                 target_gets_def,
                 target_walks_def
             ))
@@ -339,12 +348,12 @@ class SnmpPoller(object):
                 self.get_targets.append((
                     cmdgen.CommunityData(object_to_poll.community, mpModel=0),
                     cmdgen.UdpTransportTarget((object_to_poll.ip, object_to_poll.port),
-                        timeout=object_to_poll.timeout,
-                        retries=object_to_poll.retries
-                    ),
+                                              timeout=object_to_poll.timeout,
+                                              retries=object_to_poll.retries
+                                              ),
                     get_mib_variables,
                 ))
-        
+
 
     def async(self):
         '''
@@ -353,7 +362,7 @@ class SnmpPoller(object):
 
         def chunks(l, n):
             for i in range(0, len(l), n):
-                yield l[i:i+n]
+                yield l[i:i + n]
 
         cmdGen  = cmdgen.AsynCommandGenerator()
 
@@ -408,8 +417,8 @@ class SnmpPoller(object):
                 lookupNames=True, lookupValues=True
             )
             responses.append(
-                    (errorIndication, errorStatus, errorIndex, varBinds, cbCtx)
-                )
+                (errorIndication, errorStatus, errorIndex, varBinds, cbCtx)
+            )
 
         for walkVarName in walkVarNames:
             if errorIndication:
@@ -440,25 +449,25 @@ class SnmpPoller(object):
 
 
     def callback(self, sendRequestHandle, errorIndication, errorStatus, errorIndex,
-              varBinds, cbCtx):
+                 varBinds, cbCtx):
         (authData, transportTarget) = cbCtx
         # logger.warning("[SnmpPoller] callback %s", varBinds)
         if errorIndication:
             logger.warning("[SnmpPoller] errorIndication %s %s %s",
-                transportTarget,
-                varBinds,
-                errorIndication
-            )
+                           transportTarget,
+                           varBinds,
+                           errorIndication
+                           )
             return 
         if errorStatus:
             logger.warning("[SnmpPoller] errorStatus %s %s %s %s",
-                transportTarget,
-                varBinds,
-                errorStatus.prettyPrint(),
-                errorIndex and varBinds[int(errorIndex)-1] or '?'
-            )
+                           transportTarget,
+                           varBinds,
+                           errorStatus.prettyPrint(),
+                           errorIndex and varBinds[int(errorIndex) - 1] or '?'
+                           )
             return
-        
+
         addr = transportTarget.transportAddr[0]
         # logger.warning("[SnmpPoller] addr %s", addr)
         try:
@@ -484,7 +493,7 @@ class SnmpPoller(object):
                 # logger.warning("[SnmpPoller] this_object %s", this_object.properties)
                 for field, field_property in this_object.properties.iteritems():
                     # logger.warning("[SnmpPoller] field, field_property %s %s", field, field_property.oid)
-                    
+
                     try:
                         mib, symbol, index = field_property.oid
                     except:
@@ -504,7 +513,7 @@ class SnmpPoller(object):
                             buf.append((index_string, value))
                             this_object.setattr(field, buf)
                             # logger.warning("[SnmpPoller] callback buf2=%s", buf)
-                        
+
 
 
 def test_rod():
@@ -538,7 +547,7 @@ def test_rod():
             # 'cpeipmax': (('DOCS-CABLE-DEVICE-MIB', 'docsDevCpeIpMax', 0),
         }
 
-    p = SnmpPoller(threads=6,timeout=10)
+    p = SnmpPoller(threads=6, timeout=10)
     os = [
         # docsis2xCm(community='public', ip='10.6.93.139'),
         # docsis2xCm(community='public', ip='10.6.69.37'),
@@ -570,7 +579,8 @@ def test_rod():
         docsis2xCm(community='public', ip='10.4.80.130'),
     ]
 
-    p.set_mib_mibsources(mibs=['DOCS-CABLE-DEVICE-MIB'], mibSources=['/var/lib/shinken/modules/krill-docsis/module/snmpcmts/pymibs'])
+    p.set_mib_mibsources(mibs=['DOCS-CABLE-DEVICE-MIB'],
+                         mibSources=['/var/lib/shinken/modules/krill-docsis/module/snmpcmts/pymibs'])
     p.set_objects_to_poll(os)
 
     import logging
@@ -613,7 +623,7 @@ def test_lenovo():
             # 'or_uptime': Property(oid=('SNMPv2-MIB', 'sysORUpTime'), method='walk'),
         }
 
-    p = SnmpPoller(threads=6,timeout=10)    
+    p = SnmpPoller(threads=6, timeout=10)    
     # p.set_mib_mibsources(mibs=['DOCS-CABLE-DEVICE-MIB'], mibSources=['/var/lib/shinken/modules/krill-docsis/module/snmpcmts/pymibs'])
     import logging
     # logger.setLevel(logging.DEBUG)

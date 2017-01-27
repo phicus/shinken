@@ -1,4 +1,4 @@
-#/usr/bin/python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import time
@@ -83,9 +83,10 @@ def try_snmp_objects(snmp_client, cls, subindex=None, timeout=3, retries=1):
         try:
             walk_datas = snmp_client.walk(field_property.oid, subindex, timeout, retries, **field_property.kwargs)
         except errind.OidNotIncreasing:
-            logger.info("[SNMP] errind.OidNotIncreasing Exception in client=%s oid=%s ix=%s", snmp_client, field_property.oid, subindex)
+            logger.info("[SNMP] errind.OidNotIncreasing Exception in client=%s oid=%s ix=%s",
+                        snmp_client, field_property.oid, subindex)
             walk_datas = []
-        
+
         # logger.info("[SNMP] try_snmp_objects3 walk_datas %s", len(walk_datas))
         fill_snmp_objects(snmp_objects, walk_datas, cls, field, field_property)
 
@@ -106,7 +107,7 @@ def fill_snmp_objects(snmp_objects, walk_datas, cls, field, field_property):
 
         # print 'fill_snmp_objects1', walk_index, walk_data, current_index
         if current_index:
-            o, = [o for i,o in snmp_objects if i == current_index]
+            o, = [o for i, o in snmp_objects if i == current_index]
         else:
             o = cls()
             snmp_objects.append((walk_index, o))
@@ -131,7 +132,8 @@ def _get_walk_data_up_to_len(snmp_client, up_to_len, oid, subindex, timeout, ret
 
     while walk_data_len + DIFF_THRESHOLD < up_to_len and retries_count <= MAX_RETRIES and not errind_OidNotIncreasing:
         if retries_count > 0:
-            logger.warning("[SNMP] _get_walk_data_up_to_len (%s) upto=%d, but only=%d (retries=%d)" % (oid, up_to_len, walk_data_len, retries_count))
+            logger.warning("[SNMP] _get_walk_data_up_to_len (%s) upto=%d, but only=%d (retries=%d)" %
+                           (oid, up_to_len, walk_data_len, retries_count))
             time.sleep(TIME_TO_WAIT_BETWEEN_RETRIES)
 
         try:
@@ -152,7 +154,8 @@ def _get_walk_data_up_to_len(snmp_client, up_to_len, oid, subindex, timeout, ret
         retries_count += 1
 
     if walk_data_len + DIFF_THRESHOLD < up_to_len and not errind_OidNotIncreasing:
-        logger.warning("[SNMP] _get_walk_data_up_to_len (%s) upto=%d, but only=%d -> SKIP" % (oid, up_to_len, walk_data_len))
+        logger.warning("[SNMP] _get_walk_data_up_to_len (%s) upto=%d, but only=%d -> SKIP" %
+                       (oid, up_to_len, walk_data_len))
     return walk_data
 
 
@@ -195,7 +198,7 @@ class SnmpObject(object):
             # print 'setattr2', field, data
             data_to_assign = data
 
-        #setattr(self, field, data_to_assign)
+        # setattr(self, field, data_to_assign)
         self.data[field] = data_to_assign
 
 
@@ -251,7 +254,7 @@ class WalkObject(SnmpObject):
         self.data = dict().copy()
         for field, field_property in self.properties.iteritems():
             if field_property.method == 'get':
-                
+
                 if isinstance(field_property.default, dict):
                     self.setattr(field, field_property.default.copy())
                 else:

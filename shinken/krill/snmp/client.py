@@ -39,17 +39,17 @@ class SnmpClient(object):
     def init(self):
         self._snmpEngine = engine.SnmpEngine()
 
-        ## SecurityName <-> CommunityName mapping
+        # SecurityName <-> CommunityName mapping
         config.addV1System(self._snmpEngine, 'my-area', self.community)
-        
-        ## Specify security settings per SecurityName (SNMPv1 - 0, SNMPv2c - 1)
+
+        # Specify security settings per SecurityName (SNMPv1 - 0, SNMPv2c - 1)
         config.addTargetParams(self._snmpEngine, 'my-creds', 'my-area', 'noAuthNoPriv', 1)
-        
+
         #
         # Setup transport endpoint and bind it with security settings yielding
         # a target name (choose one entry depending of the transport needed).
         #
-        
+
         # UDP/IPv4
         config.addSocketTransport(
             self._snmpEngine,
@@ -67,13 +67,14 @@ class SnmpClient(object):
         logger.info("[SNMP] client %s: %s / %s", self, self.mibSources, self.mibs)
         extraMibSources = tuple([builder.DirMibSource(d) for d in self.mibSources])
         totalMibSources = extraMibSources + self.mibBuilder.getMibSources()
-        self.mibBuilder.setMibSources( *totalMibSources )
+        self.mibBuilder.setMibSources(*totalMibSources)
         if self.mibs:
-            self.mibBuilder.loadModules( *self.mibs )
+            self.mibBuilder.loadModules(*self.mibs)
         self.mibViewController = view.MibViewController(self.mibBuilder)
 
-        self.auth_data = cmdgen.CommunityData('krill', self.community, self.version-1)
-        self.udp_transport_target = cmdgen.UdpTransportTarget((self.host, self.port), timeout=self.timeout, retries=self.retries)
+        self.auth_data = cmdgen.CommunityData('krill', self.community, self.version - 1)
+        self.udp_transport_target = cmdgen.UdpTransportTarget(
+            (self.host, self.port), timeout=self.timeout, retries=self.retries)
 
 
     def __str__(self):
@@ -109,7 +110,7 @@ class SnmpClient(object):
 
     def set_named(self, mib, index, oid2value):
         varBinds = []
-        for symbol,value in oid2value:
+        for symbol, value in oid2value:
             mv_arg = (mib, symbol) + index
             mv = cmdgen.MibVariable(*mv_arg)
             mv.resolveWithMib(self.mibViewController)
@@ -120,13 +121,13 @@ class SnmpClient(object):
     def set(self, varBinds):
         cmdGen = cmdgen.CommandGenerator()
 
-        #logger.info("SNMP::set (%r)" % (varBinds))
+        # logger.info("SNMP::set (%r)" % (varBinds))
         errorIndication, errorStatus, errorIndex, varBinds = cmdGen.setCmd(
             self.auth_data,
             self.udp_transport_target,
             *varBinds,
             lookupNames=True
-            #lookupValues=True,
+            # lookupValues=True,
         )
         error = self.handle_snmp_error(errorIndication, errorStatus, errorIndex, varBinds)
         if error:
@@ -134,24 +135,24 @@ class SnmpClient(object):
         else:
             for oid, val in varBinds:
                 pass
-                #print('%s = %s' % (oid.prettyPrint(), val.prettyPrint()))
+                # print('%s = %s' % (oid.prettyPrint(), val.prettyPrint()))
 
     def handle_snmp_error(self, errorIndication, errorStatus, errorIndex, varBinds):
-        #logger.info("SNMP::handle_snmp_error (%r, %r, %r, %r)" % (errorIndication, errorStatus, errorIndex, varBinds))
+        # logger.info("SNMP::handle_snmp_error (%r, %r, %r, %r)" % (errorIndication, errorStatus, errorIndex, varBinds))
         error = False
         if errorIndication:
             error = 'ei:%s' % errorIndication
         elif errorStatus and errorIndex:
-            error = 'es:%s at ei:%s' % (errorStatus.prettyPrint(), varBinds[int(errorIndex)-1])
+            error = 'es:%s at ei:%s' % (errorStatus.prettyPrint(), varBinds[int(errorIndex) - 1])
         elif errorStatus:
             error = 'es:%s' % errorStatus.prettyPrint()
 
         if error:
             return {
-                'errorIndication':errorIndication,
-                'errorStatus':errorStatus,
-                'errorIndex':errorIndex,
-                'msg':error,
+                'errorIndication': errorIndication,
+                'errorStatus': errorStatus,
+                'errorIndex': errorIndex,
+                'msg': error,
             }
 
 
@@ -172,25 +173,25 @@ class SnmpClient(object):
             symName = CamelCase2_(symName[prefixlen:])
             index_string = '.'.join([x.prettyPrint() for x in indices])
             index_string = tuple([x.prettyPrint() for x in indices])
-            #print 'TFLK1', oid, modName, symName, indices, value, mv.getMibNode().syntax.__class__, index_string
-            #print 'TFLK2 [%s]' % value
+            # print 'TFLK1', oid, modName, symName, indices, value, mv.getMibNode().syntax.__class__, index_string
+            # print 'TFLK2 [%s]' % value
             try:
                 value_string = mv.getMibNode().syntax.clone(value).prettyPrint()
-                #value_string = str(value)
+                # value_string = str(value)
             except AttributeError:
-                #print 'AttributeError!!', indices
+                # print 'AttributeError!!', indices
                 symName += '.'.join([x.prettyPrint() for x in indices])
                 value_string = "ERROR: %s -> %s" % (index_string, value.prettyPrint())
-                #print 'value_string: symName', symName, value_string, indices, index_string
+                # print 'value_string: symName', symName, value_string, indices, index_string
 
-            #value_string = value.prettyPrint()
+            # value_string = value.prettyPrint()
             try:
-                i = [i for i,d in raw].index(index_string)
+                i = [i for i, d in raw].index(index_string)
                 ti, td = raw[i]
                 td[symName] = value_string
             except Exception as exc:
                 raw.append((index_string, {symName: value_string}, ))
-                #raw.append((indices, {symName: value_string}, ))
+                # raw.append((indices, {symName: value_string}, ))
 
         # return [(ti, info_container.InfoContainer(td, return_none=True)) for ti, td in raw]
         return [(ti, AttrDict(td)) for ti, td in raw]
@@ -208,10 +209,10 @@ class SnmpClient(object):
                     self.auth_data, 
                     cmdgen.UdpTransportTarget((self.host, self.port), timeout=timeout, retries=retries),
                     oid,
-                    #lookupNames=True, lookupValues=True
-                    #ignoreNonIncreasingOid=True,
+                    # lookupNames=True, lookupValues=True
+                    # ignoreNonIncreasingOid=True,
                     **kwargs
-                )
+            )
             error = self.handle_snmp_error(errorIndication, errorStatus, errorIndex, varBinds)
             if error:
                 msg = "client=%s oid=%s error=%s" % (self, oid, error['errorIndication'])
@@ -255,7 +256,9 @@ class SnmpClient(object):
             index_string = tuple([x.prettyPrint() for x in indices])
             # logger.info("[SNMP] WALK index_string %s", index_string)
             try:
-                #print 'value %s %s %r --> %s' % (type(value), value, mv.getMibNode().syntax, mv.getMibNode().syntax.clone(value).prettyPrint())
+                # print 'value %s %s %r --> %s' % (type(value), value,
+                # mv.getMibNode().syntax,
+                # mv.getMibNode().syntax.clone(value).prettyPrint())
                 final_value = mv.getMibNode().syntax.clone(value).prettyPrint()
                 # logger.info("[SNMP] WALK final_value %s", final_value)
             except AttributeError:
@@ -264,7 +267,7 @@ class SnmpClient(object):
             # print 'walk oid', mib, symbol, oid, value, final_value, index_string
 
             try:
-                i = [i for i,d in raw].index(index_string)
+                i = [i for i, d in raw].index(index_string)
                 # logger.info("[SNMP] WALK i %s", i)
                 ti, td = raw[i]
                 # logger.info("[SNMP] WALK ti, td %s %s", ti, td)
@@ -286,9 +289,9 @@ if __name__ == '__main__':
 
     # debug.setLogger(debug.Debug('all'))
 
-    mib_dir = sys.argv[1] #'/home/irojo/dev/krill-modules/krill-gpon/module/snmpolt/zte/pymibs'
-    mib = sys.argv[2] #'ZTE-AN-GPON-SERVICE-MIB'
-    symbol = sys.argv[3] #'zxAnGponOnuMgmtName'
+    mib_dir = sys.argv[1]  # '/home/irojo/dev/krill-modules/krill-gpon/module/snmpolt/zte/pymibs'
+    mib = sys.argv[2]  # 'ZTE-AN-GPON-SERVICE-MIB'
+    symbol = sys.argv[3]  # 'zxAnGponOnuMgmtName'
 
     mibBuilder = builder.MibBuilder()
     totalMibSources = (builder.DirMibSource(mib_dir),) + mibBuilder.getMibSources()

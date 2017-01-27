@@ -379,7 +379,8 @@ def parse_args(cmd_args):
             raise Exception(error_message)
 
     # Check if we have all arguments to map instance
-    if args['instance_name'] != '' and args['instance_name'] is not None and (args['mapping'] is None and args['mapping_name'] is None):
+    if args['instance_name'] != '' and args['instance_name'] is not None and (args['mapping'] is None and
+       args['mapping_name'] is None):
         error_message = ("We need to find an instance from a mapping table, "
                          "but mapping and mapping-name arguments are not "
                          "defined.")
