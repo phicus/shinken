@@ -15,6 +15,7 @@ CPEKEY_BY_TECH = {
 }
 
 class TechCpe(object):
+
     def __init__(self, host_name, data, customs):
         self.host_name = host_name
         self.customs = {}

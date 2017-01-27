@@ -27,7 +27,7 @@ def process_perfdata(obj, s, prefix=''):
     if prefix:
         prefix += '_'
 
-    checks=[]
+    checks = []
     for metric in p:
         # print 'm,M', metric.value, metric.min, metric.max
 
@@ -51,7 +51,7 @@ def process_perfdata(obj, s, prefix=''):
 class PerfDef(object):
 
     def __init__(self, perf_def):
-        if len(perf_def) == 3: #patter/format/unit
+        if len(perf_def) == 3:  # patter/format/unit
             self.pattern, self.format, self.unit = perf_def
             thresholds = []
             self.min = self.max = None
@@ -85,7 +85,8 @@ class PerfDef(object):
     def filter_metric(self, metric):
         m = re.match(r'^%s(?P<index>\d*)$' % self.pattern, metric)
         if m:
-            # print 'filter_metric %s p=%s m=%s i=%s t=%s ' % (self, self.pattern, metric, m.group('index'), type(m.group('index')))
+            # print 'filter_metric %s p=%s m=%s i=%s t=%s ' % (self, self.pattern,
+            # metric, m.group('index'), type(m.group('index')))
             return True, m.group('index') == ''
         else:
             return False, False
@@ -149,28 +150,28 @@ class PerfDef(object):
 
         if critical is not None and op_func(float(value), float(critical)) and value not in self.exceptions:
             return (CRITICAL, '{metric}={value:{format}}{unit} {op_text} {critical:{format}}{unit}!!'.format(
-                        metric=metric,
-                        value=value,
-                        format=self.format,
-                        unit=self.unit,
-                        op_text=op_text,
-                        critical=critical
-                    ))
+                metric=metric,
+                value=value,
+                format=self.format,
+                unit=self.unit,
+                op_text=op_text,
+                critical=critical
+            ))
         if warning is not None and op_func(float(value), float(warning)) and value not in self.exceptions:
             return (WARNING, '{metric}={value:{format}}{unit} {op_text} {warning:{format}}{unit}!'.format(
-                        metric=metric,
-                        value=value,
-                        format=self.format,
-                        unit=self.unit,
-                        op_text=op_text,
-                        warning=warning
-                    ))
+                metric=metric,
+                value=value,
+                format=self.format,
+                unit=self.unit,
+                op_text=op_text,
+                warning=warning
+            ))
         return (OK, '{metric}={value:{format}}{unit}'.format(
-                        metric=metric,
-                        value=value,
-                        format=self.format,
-                        unit=self.unit,
-                    ))
+            metric=metric,
+            value=value,
+            format=self.format,
+            unit=self.unit,
+        ))
 
 
 
@@ -251,7 +252,8 @@ def process_raw_perfdata(raw_data, perf_defs):
             #                 unit=unit,
             #             ))
             #     except Exception, exc:
-            #         print 'process_raw_perfdata Exception', exc, metric, value, type(value), warning, critical, min, type(min), max, type(max), format, unit
+            # print 'process_raw_perfdata Exception', exc, metric, value, type(value),
+            # warning, critical, min, type(min), max, type(max), format, unit
 
             #     if min is not None and float(value) < float(min):
             #         checks.append((UNKNOWN, '{metric}={value:{format}}{unit} below min({min}{unit})'.format(
@@ -392,7 +394,7 @@ def test_process_raw_perfdata():
         # 'uptx2': 40.3,
         # 'uptx3': 40.2
     }
-    perf_defs=[
+    perf_defs = [
         # ('dnsnr', '.1f', 'dB', (45, 35), 0.5, 100),
         # ('uptx', '.1f', 'dBm', (58, 65), -2, +70),
         # ('dnrx', '.1f', 'dBm', (-20, -15, +15, +30), -50, +50),
@@ -400,8 +402,8 @@ def test_process_raw_perfdata():
         # ('freq', 'd', 'Hz'),
         ('upsnr', '.1f', 'dB', (18, 10), 5, 90, [0.0]),
     ]
-    perf_defs=[
-        ('dnatt', '.1f', 'dB', [10,20,65,75], 0, 99),
+    perf_defs = [
+        ('dnatt', '.1f', 'dB', [10, 20, 65, 75], 0, 99),
         # ('dnrx', '.1f', 'dBm', [-25,-15,20,40], -50, +60),
         # ('dnsnr', '.1f', 'dB', [25,18], 4, 99),
         # ('dnfreq', 'd', 'Hz'),
@@ -437,5 +439,5 @@ def test_process_perfdata():
 
 
 if __name__ == '__main__':
-    #test_process_raw_perfdata()
+    # test_process_raw_perfdata()
     test_process_perfdata()
