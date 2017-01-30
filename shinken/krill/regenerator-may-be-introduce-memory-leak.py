@@ -52,6 +52,7 @@ from shinken.log import logger
 # Class for a Regenerator. It will get broks, and "regenerate" real objects
 # from them :)
 class Regenerator(object):
+
     def __init__(self):
 
         # Our Real datas

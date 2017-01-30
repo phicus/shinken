@@ -64,7 +64,7 @@ class TechRegenerator(object):
             print "Not good!", exp
             return
 
-        
+
         # print 'TECH h', h, data['id']
         inp_hosts[data['id']] = h
 
@@ -86,7 +86,7 @@ class TechRegenerator(object):
 
         elif self.filter_by_fields:
             for f in self.filter_by_fields:
-                if 'customs' in data and '_'+f.upper() in data['customs']:
+                if 'customs' in data and '_' + f.upper() in data['customs']:
                     return True
             return False
 
@@ -107,7 +107,8 @@ class TechRegenerator(object):
     def manage_initial_broks_done_brok(self, b):
         inst_id = b.data['instance_id']
         print "TECH manage_initial_broks_done_brok of instance", inst_id, len(self.index_hosts)
-        logger.info("[TECHRG] LEAK manage_initial_broks_done_brok inst_id=%s total_size=%s", inst_id, total_size(self.index_hosts))
+        logger.info("[TECHRG] LEAK manage_initial_broks_done_brok inst_id=%s total_size=%s",
+                    inst_id, total_size(self.index_hosts))
 
         try:
             inp_hosts = self.inp_hosts[inst_id]

@@ -10,9 +10,9 @@ from shinken.external_command import ExternalCommand
 
 class KrillExternalCommands(object):
 
-    SERVICESTATES = {'OK':'0', 'WARNING':'1', 'CRITICAL':'2', 'UNKNOWN':'3'}
-    #HOSTSTATES = {'UP':'0', 'DOWN':'1', 'UNREACHABLE':'????'}
-    HOSTSTATES = {'UP':'0', 'DOWN':'2'}
+    SERVICESTATES = {'OK': '0', 'WARNING': '1', 'CRITICAL': '2', 'UNKNOWN': '3'}
+    # HOSTSTATES = {'UP': '0', 'DOWN': '1', 'UNREACHABLE': '????'}
+    HOSTSTATES = {'UP': '0', 'DOWN': '2'}
 
     def __init__(self):
         self.reset()
@@ -111,7 +111,7 @@ class KrillExternalCommands(object):
     def send_all(self):
         def chunks(l, n):
             for i in range(0, len(l), n):
-                yield l[i:i+n]
+                yield l[i:i + n]
 
         logger.info("[EC] send_all...")
         COMMAND_CHUNK_SIZE = 100

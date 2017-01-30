@@ -14,7 +14,8 @@
 #      alphanumeric characters.
 #    2. Renamed the old password generation function to GeneratePasswordWithCharSet()
 
-import hashlib, string
+import hashlib
+import string
 
 def get_charset_password(charset, passString, passLength):
     """This function creates a SHA-1 hash from the passString. The 40 nibbles of
@@ -26,18 +27,18 @@ def get_charset_password(charset, passString, passLength):
     charlen = len(charset)
     c1 = []
     n = 0
-    s = hashlib.sha1(passString).hexdigest() # this gives a 40 nibble string (160 bits)
+    s = hashlib.sha1(passString).hexdigest()  # this gives a 40 nibble string (160 bits)
     for nibble in s:
-        n = (n + string.atoi(nibble,16)) % charlen
+        n = (n + string.atoi(nibble, 16)) % charlen
         c1.append(charset[n])  # this will finally generate a 40 character list
-        
+
     # Repeat the above loop to scramble this set again
     n = 0
     c2 = []
     for nibble in s:
-        n = (n + string.atoi(nibble,16)) % 40   # for 40 nibbles
+        n = (n + string.atoi(nibble, 16)) % 40   # for 40 nibbles
         c2.append(c1[n])
-    
+
     # Now truncate this character list to the required length and return
     return "".join(c2[-passLength:])
 
@@ -47,7 +48,7 @@ def get_pots_charset_password(charset, seed, length):
 if __name__ == '__main__':
     import sys
 
-    charset=sys.argv[1]
-    passString=sys.argv[2]
-    passLength=int(sys.argv[3])
+    charset = sys.argv[1]
+    passString = sys.argv[2]
+    passLength = int(sys.argv[3])
     print 'get_pots_charset_password', get_pots_charset_password(charset, passString, passLength)
