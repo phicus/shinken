@@ -148,12 +148,12 @@ class Log(logging.Logger):
         """
         self.log_set = True
         # Todo : Create a config var for backup count
-        if os.path.exists(path) and not stat.S_ISREG(os.stat(path).st_mode):
+        # if os.path.exists(path) and not stat.S_ISREG(os.stat(path).st_mode):
             # We don't have a regular file here. Rotate may fail
             # It can be one of the stat.S_IS* (FIFO? CHR?)
-            handler = FileHandler(path)
-        else:
-            handler = TimedRotatingFileHandler(path, 'midnight', backupCount=5)
+        handler = FileHandler(path)
+        # else:
+        #    handler = TimedRotatingFileHandler(path, 'midnight', backupCount=5)
         if level is not None:
             handler.setLevel(level)
         if self.name is not None:
