@@ -48,7 +48,7 @@ _brokhandler_ = None
 
 
 defaultFormatter = Formatter('[%(created)i] %(levelname)s: %(message)s')
-defaultFormatter_named = Formatter('[%(created)i] %(asctime)s %(levelname)s: [%(name)s] %(message)s', datefmt='%H:%M:%S')
+defaultFormatter_named = Formatter('[%(created)i] %(levelname)s: [%(name)s] %(message)s')
 humanFormatter = Formatter('[%(asctime)s] %(levelname)s: %(message)s', '%a %b %d %H:%M:%S %Y')
 humanFormatter_named = Formatter('[%(asctime)s] %(levelname)s: [%(name)s] %(message)s',
                                  '%a %b %d %H:%M:%S %Y')
