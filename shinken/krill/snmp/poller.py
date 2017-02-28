@@ -78,8 +78,7 @@ class TimeoutQueue(Queue):
                                    self.unfinished_tasks, self.init_unfinished_tasks)
                     pct_unfinished_tasks = 0
 
-                if pct_unfinished_tasks < GOOD_ENOUGH_FINISHED_TASKS_PERCENTAGE or 
-                self.unfinished_tasks < GOOD_ENOUGH_FINISHED_TASKS_NUMBER:
+                if pct_unfinished_tasks < GOOD_ENOUGH_FINISHED_TASKS_PERCENTAGE or self.unfinished_tasks < GOOD_ENOUGH_FINISHED_TASKS_NUMBER:
                     raise GoodEnoughSnmpPollerException("Unfinished tasks: %d (%.2f%%)" %
                                                         (self.unfinished_tasks, pct_unfinished_tasks))
                 else:

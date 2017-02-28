@@ -7,8 +7,9 @@ class Property(object):
     Baseclass of all snmp properties.
     """
 
-    def __init__(self, oid=None, default=None, method='get', kwargs={}):
+    def __init__(self, oid=None, default=None, method='get', order=10, kwargs={}):
         self.oid = oid
         self.default = default
         self.method = method
         self.kwargs = kwargs
+        self.order = order

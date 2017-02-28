@@ -9,6 +9,12 @@ from shinken.log import logger
 
 from client import SnmpRuntimeError
 
+def as_tuples(properties):
+    if isinstance(properties, dict):
+        return [(k, v) for k, v in properties.iteritems()]
+    else:
+        return properties
+
 
 def get_snmp_object(snmp_client, cls, subindex):
 
@@ -16,7 +22,7 @@ def get_snmp_object(snmp_client, cls, subindex):
     snmp_object = cls()
     cls_properties = getattr(cls, 'properties')
     try:
-        for field, field_property in cls_properties.iteritems():
+        for field, field_property in as_tuples(cls_properties):
             snmp_client_method = getattr(snmp_client, field_property.method)
             # print 'snmp_client_method', field, snmp_client_method, field_property.oid, subindex
             if field_property.method == 'get':
@@ -41,7 +47,7 @@ def get_snmp_object(snmp_client, cls, subindex):
                     )
                     snmp_object_data = []
                     for walk_index, walk_data in walk_datas:
-                        snmp_object_data.append((tuple(list(walk_index)[1:]), walk_data.itervalues().next()))
+                        snmp_object_data.append((tuple(list(walk_index)[len(subindex):]), walk_data.itervalues().next()))
                     snmp_object.setattr(field, snmp_object_data)
                 except Exception, exc:
                     logger.info("[SNMP] get_snmp_object walk client=%s field=%s Exception=%s", snmp_client, field, exc)
@@ -55,7 +61,7 @@ def get_snmp_objects(snmp_client, cls, subindex=None):
     snmp_objects = []
     cls_properties = getattr(cls, 'properties')
     data_len = 0
-    for field, field_property in cls_properties.iteritems():
+    for field, field_property in as_tuples(cls_properties):
         if not field_property.oid:
             continue
 
@@ -71,12 +77,13 @@ def get_snmp_objects(snmp_client, cls, subindex=None):
     return snmp_objects
 
 
-def try_snmp_objects(snmp_client, cls, subindex=None, timeout=3, retries=1):
+def try_snmp_objects(snmp_client, cls, subindex=None, timeout=4, retries=5):
     snmp_objects = []
-    # logger.info("[SNMP] try_snmp_objects1")
+    # logger.info("[SNMP] try_snmp_objects1 %s", cls)
     cls_properties = getattr(cls, 'properties')
-    for field, field_property in cls_properties.iteritems():
-        # logger.info("[SNMP] try_snmp_objects2 field, field_property %s %s", field, field_property.oid)
+    for field, field_property in as_tuples(cls_properties):
+
+        # logger.info("[SNMP] try_snmp_objects2 %s %s", field, field_property)
         if not field_property.oid:
             continue
 
@@ -98,25 +105,41 @@ def fill_snmp_objects(snmp_objects, walk_datas, cls, field, field_property):
     for walk_index, walk_data in walk_datas:
         current_index = None
         current_subindex = None
-        for index, _ in snmp_objects:
+        o = None
+        for index, snmp_object in snmp_objects:
+            # print '  - ', walk_index, index, snmp_object
             if walk_index == index:
+                o = snmp_object
                 current_index = index
             elif walk_index[0:len(index)] == index:
+                o = snmp_object
                 current_index = index
                 current_subindex = walk_index[len(index):]
 
-        # print 'fill_snmp_objects1', walk_index, walk_data, current_index
-        if current_index:
-            o, = [o for i, o in snmp_objects if i == current_index]
-        else:
+        if o is None:
             o = cls()
+            if field_property.method == 'walk':
+                o.setattr(field, [])
+
             snmp_objects.append((walk_index, o))
+            # print 'fill_snmp_objects snmp_objects!', len(snmp_objects)
+
+        # print 'fill_snmp_objects1', o, walk_index, walk_data, current_index, field, field_property.method
+        # if current_index:
+        #     o, = [o for i, o in snmp_objects if i == current_index]
+        # else:
+        #     o = cls()
+        #     if field_property.method == 'walk':
+        #         o.setattr(field, [])
+
+        #     snmp_objects.append((walk_index, o))
+        # print 'fill_snmp_objects2', o
 
         data_to_set = walk_data.itervalues().next()
         if field_property.method == 'get':
             o.setattr(field, data_to_set)
         else:
-            # print 'fill_snmp_objects', o, field, tuple(current_subindex), data_to_set
+            # print 'fill_snmp_objects3', o, field, tuple(current_subindex), data_to_set
             o.appendattr(field, (tuple(current_subindex), data_to_set))
 
 
@@ -252,7 +275,7 @@ class WalkObject(SnmpObject):
         self.perf_fields = []
 
         self.data = dict().copy()
-        for field, field_property in self.properties.iteritems():
+        for field, field_property in as_tuples(self.properties):
             if field_property.method == 'get':
 
                 if isinstance(field_property.default, dict):
