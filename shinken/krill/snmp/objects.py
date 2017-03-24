@@ -79,35 +79,43 @@ def get_snmp_objects(snmp_client, cls, subindex=None):
 
 def try_snmp_objects(snmp_client, cls, subindex=None, timeout=4, retries=5):
     snmp_objects = []
-    # logger.info("[SNMP] try_snmp_objects1 %s", cls)
+    logger.info("[SNMP-DOCSIS] try_snmp_objects1 %s", cls)
     cls_properties = getattr(cls, 'properties')
     for field, field_property in as_tuples(cls_properties):
 
-        # logger.info("[SNMP] try_snmp_objects2 %s %s", field, field_property)
+        logger.info("[SNMP-DOCSIS] try_snmp_objects2 %s %s", field, field_property.oid)
         if not field_property.oid:
             continue
 
         try:
             walk_datas = snmp_client.walk(field_property.oid, subindex, timeout, retries, **field_property.kwargs)
         except errind.OidNotIncreasing:
-            logger.info("[SNMP] errind.OidNotIncreasing Exception in client=%s oid=%s ix=%s",
+            logger.info("[SNMP-DOCSIS] errind.OidNotIncreasing Exception in client=%s oid=%s ix=%s",
                         snmp_client, field_property.oid, subindex)
             walk_datas = []
+        except Exception, exc:
+            logger.info("[SNMP-DOCSIS] try_snmp_objects Exception in client=%s oid=%s subix=%s exc=%s",
+                        snmp_client, field_property.oid, subindex, exc)
 
-        # logger.info("[SNMP] try_snmp_objects3 walk_datas %s", len(walk_datas))
+        logger.info("[SNMP-DOCSIS] try_snmp_objects3 walk_datas %d", len(walk_datas))
         fill_snmp_objects(snmp_objects, walk_datas, cls, field, field_property)
-
+        logger.info("[SNMP-DOCSIS] try_snmp_objects4 snmp_objects %d", len(snmp_objects))
 
     return snmp_objects
 
 
 def fill_snmp_objects(snmp_objects, walk_datas, cls, field, field_property):
+    logger.info("[SNMP-DOCSIS] fill_snmp_objects walk_datas:%d snmp_objects:%d", len(walk_datas), len(snmp_objects))
+    loop_index = 0
     for walk_index, walk_data in walk_datas:
+        loop_index+=1
+        # logger.info("[SNMP-DOCSIS] fill_snmp_objects loop (%d)", loop_index)
+        # logger.info("[SNMP-DOCSIS] fill_snmp_objects walk_index:%s walk_data:%d snmp_objects:%d", walk_index, len(walk_data), len(snmp_objects))
         current_index = None
         current_subindex = None
         o = None
         for index, snmp_object in snmp_objects:
-            # print '  - ', walk_index, index, snmp_object
+            # logger.info("[SNMP-DOCSIS] fill_snmp_objects snmp_object:%s", snmp_object)
             if walk_index == index:
                 o = snmp_object
                 current_index = index
@@ -135,12 +143,21 @@ def fill_snmp_objects(snmp_objects, walk_datas, cls, field, field_property):
         #     snmp_objects.append((walk_index, o))
         # print 'fill_snmp_objects2', o
 
-        data_to_set = walk_data.itervalues().next()
+        # logger.info("[SNMP-DOCSIS-FIXME] fill_snmp_objects and...")
+        try:
+            data_to_set = walk_data.itervalues().next()
+        except Exception, exc:
+            logger.warning("[SNMP-DOCSIS-FIXME] Exception walk_data:%s", walk_data)
+            data_to_set = None
+
         if field_property.method == 'get':
             o.setattr(field, data_to_set)
         else:
-            # print 'fill_snmp_objects3', o, field, tuple(current_subindex), data_to_set
-            o.appendattr(field, (tuple(current_subindex), data_to_set))
+            if current_subindex:
+                o.appendattr(field, (tuple(current_subindex), data_to_set))
+            else:
+                logger.warning("[SNMP-DOCSIS-FIXME] no current_subindex (%s/%s/%s)...", walk_index, walk_data, data_to_set)
+    logger.info("[SNMP-DOCSIS] fill_snmp_objects!!!")
 
 
 def _get_walk_data_up_to_len(snmp_client, up_to_len, oid, subindex, timeout, retries, **kwargs):
