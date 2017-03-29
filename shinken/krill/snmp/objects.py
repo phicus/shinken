@@ -79,11 +79,11 @@ def get_snmp_objects(snmp_client, cls, subindex=None):
 
 def try_snmp_objects(snmp_client, cls, subindex=None, timeout=4, retries=5):
     snmp_objects = []
-    logger.info("[SNMP-DOCSIS] try_snmp_objects1 %s", cls)
+    # logger.info("[SNMP-DOCSIS] try_snmp_objects1 %s", cls)
     cls_properties = getattr(cls, 'properties')
     for field, field_property in as_tuples(cls_properties):
 
-        logger.info("[SNMP-DOCSIS] try_snmp_objects2 %s %s", field, field_property.oid)
+        # logger.info("[SNMP-DOCSIS] try_snmp_objects2 %s %s", field, field_property.oid)
         if not field_property.oid:
             continue
 
@@ -97,15 +97,15 @@ def try_snmp_objects(snmp_client, cls, subindex=None, timeout=4, retries=5):
             logger.info("[SNMP-DOCSIS] try_snmp_objects Exception in client=%s oid=%s subix=%s exc=%s",
                         snmp_client, field_property.oid, subindex, exc)
 
-        logger.info("[SNMP-DOCSIS] try_snmp_objects3 walk_datas %d", len(walk_datas))
+        # logger.info("[SNMP-DOCSIS] try_snmp_objects3 walk_datas %d", len(walk_datas))
         fill_snmp_objects(snmp_objects, walk_datas, cls, field, field_property)
-        logger.info("[SNMP-DOCSIS] try_snmp_objects4 snmp_objects %d", len(snmp_objects))
+        # logger.info("[SNMP-DOCSIS] try_snmp_objects4 snmp_objects %d", len(snmp_objects))
 
     return snmp_objects
 
 
 def fill_snmp_objects(snmp_objects, walk_datas, cls, field, field_property):
-    logger.info("[SNMP-DOCSIS] fill_snmp_objects walk_datas:%d snmp_objects:%d", len(walk_datas), len(snmp_objects))
+    # logger.info("[SNMP-DOCSIS] fill_snmp_objects walk_datas:%d snmp_objects:%d", len(walk_datas), len(snmp_objects))
     loop_index = 0
     for walk_index, walk_data in walk_datas:
         loop_index+=1
@@ -157,7 +157,7 @@ def fill_snmp_objects(snmp_objects, walk_datas, cls, field, field_property):
                 o.appendattr(field, (tuple(current_subindex), data_to_set))
             else:
                 logger.warning("[SNMP-DOCSIS-FIXME] no current_subindex (%s/%s/%s)...", walk_index, walk_data, data_to_set)
-    logger.info("[SNMP-DOCSIS] fill_snmp_objects!!!")
+    # logger.info("[SNMP-DOCSIS] fill_snmp_objects!!!")
 
 
 def _get_walk_data_up_to_len(snmp_client, up_to_len, oid, subindex, timeout, retries, **kwargs):
