@@ -37,9 +37,9 @@ class KrillExternalCommands(object):
 
 
     def push_change_host_var(self, host, varname, varvalue):
-        logger.info("[EC] push_change_host_var? %s %s %s", host, varname, varvalue)
+        # logger.info("[EC] push_change_host_var? %s %s %s", host, varname, varvalue)
         if host and getattr(host, varname) != varvalue:
-            logger.info("[EC] push_change_host_var! %s %s %s", host.host_name, varname, varvalue)
+            # logger.info("[EC] push_change_host_var! %s %s %s", host.host_name, varname, varvalue)
             extcmd = '[%d] %s;%s;%s;%s' % (int(time.time()), 'CHANGE_HOST_VAR', host.host_name, varname, varvalue)
             self.push_extcmd(extcmd)
 
@@ -113,12 +113,12 @@ class KrillExternalCommands(object):
             for i in range(0, len(l), n):
                 yield l[i:i + n]
 
-        logger.info("[EC] send_all...")
+        # logger.info("[EC] send_all...")
         COMMAND_CHUNK_SIZE = 100
         self_all = self.all()
         for chunk in chunks(self_all, COMMAND_CHUNK_SIZE):
             for extcmd in chunk:
-                logger.info("[EC] send_all extcmd=%s" % extcmd)
+                # logger.info("[EC] send_all extcmd=%s" % extcmd)
                 self.push_extcmd(extcmd)
             time.sleep(1)
             logger.debug("[EC] sleep")
