@@ -227,26 +227,60 @@ class SnmpClient(object):
             raise exceptions.SNMPExceptionError(exc)
 
 
+    def _bulk_data(self, oid, timeout=3, retries=1, **kwargs):
+        try:
+            (errorIndication, errorStatus, errorIndex, varBinds) = \
+                cmdgen.CommandGenerator().bulkCmd(
+                    self.auth_data,
+                    cmdgen.UdpTransportTarget((self.host, self.port), timeout=timeout, retries=retries),
+                    0, 25,
+                    oid,
+                    # lookupNames=True, lookupValues=True
+                    # ignoreNonIncreasingOid=True,
+                    **kwargs
+            )
+            error = self.handle_snmp_error(errorIndication, errorStatus, errorIndex, varBinds)
+            if error:
+                msg = "client=%s oid=%s error=%s" % (self, oid, error['errorIndication'])
+                if str(error['errorIndication']) == "OIDs are not increasing":
+                    r = errind.OidNotIncreasing(msg)
+                else:
+                    r = SnmpRuntimeError(msg)
+                raise r
+            else:
+                return [x[0] for x in varBinds]
+        except socket.error, exc:
+            raise exceptions.SNMPExceptionError(exc)
+
+
     def walk(self, oid, subindex=None, timeout=3, retries=1, **kwargs):
-        # logger.info("[SNMP] WALK oid, subindex %r %r", oid, subindex)
+        oid_to_walk = self._get_oid_to_walk(oid, subindex)
+        data = self._next_cmd_data(oid_to_walk, timeout, retries, **kwargs)
+        return self._get_walkdata(oid, data)
+
+
+    def bulkwalk(self, oid, subindex=None, timeout=3, retries=1, **kwargs):
+        oid_to_walk = self._get_oid_to_walk(oid, subindex)
+        data = self._bulk_data(oid_to_walk, timeout, retries, **kwargs)
+        return self._get_walkdata(oid, data)
+
+
+    def _get_oid_to_walk(self, oid, subindex=None):
         if len(oid) == 2:
             mib, symbol = oid
-            # logger.info("[SNMP] WALK mib, symbol %r %r", mib, symbol)
             mibVariable = cmdgen.MibVariable(mib, symbol).loadMibs(mib)
-            # logger.info("[SNMP] WALK mibVariable1 %r", mibVariable)
             mibVariable.resolveWithMib(self.mibViewController)
-            # logger.info("[SNMP] WALK mibVariable2 %r", mibVariable)
             oid_to_walk = mibVariable.asTuple()
-            # logger.info("[SNMP] WALK oid_to_walk %r", oid_to_walk)
         else:
             oid_to_walk = oid
 
         if subindex:
             oid_to_walk += subindex
 
-        data = self._next_cmd_data(oid_to_walk, timeout, retries, **kwargs)
-        # logger.info("[SNMP] WALK data -> %d", len(data))
+        return oid_to_walk
 
+
+    def _get_walkdata(self, oid, data):
         raw = []
         for oid, value in data:
             # logger.info("[SNMP] WALK oid, value %s %s", oid, value)
@@ -276,6 +310,7 @@ class SnmpClient(object):
                 raw.append((index_string, {symName: final_value}, ))
 
         return raw
+
 
 class SnmpSetError(Exception):
     pass
