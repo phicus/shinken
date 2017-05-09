@@ -89,7 +89,7 @@ def try_snmp_objects(snmp_client, cls, subindex=None, timeout=4, retries=5):
 
         walk_datas = []
         try:
-            walk_datas = snmp_client.bulkwalk(field_property.oid, subindex, timeout, retries, **field_property.kwargs)
+            walk_datas = snmp_client.walk(field_property.oid, subindex, timeout, retries, **field_property.kwargs)
         except errind.OidNotIncreasing:
             msg = "[SNMP] errind.OidNotIncreasing Exception in client=%s oid=%s ix=%s" % (
                 snmp_client, field_property.oid, subindex
