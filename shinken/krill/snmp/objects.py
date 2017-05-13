@@ -77,11 +77,16 @@ def get_snmp_objects(snmp_client, cls, subindex=None):
     return snmp_objects
 
 
-def try_snmp_objects(snmp_client, cls, subindex=None, timeout=4, retries=5):
-    snmp_objects = []
-    # logger.info("[SNMP] try_snmp_objects1 %s", cls)
+def try_snmp_objects(snmp_client, cls, subindex=None, timeout=4, retries=5, snmp_objects=None):
     cls_properties = getattr(cls, 'properties')
-    for field, field_property in as_tuples(cls_properties):
+    return try_snmp_objects_properties(snmp_client, cls, cls_properties, subindex, timeout, retries, snmp_objects)
+
+
+def try_snmp_objects_properties(snmp_client, cls, properties, subindex=None, timeout=4, retries=5, snmp_objects=None):
+    if not snmp_objects:
+        snmp_objects = []
+    # logger.info("[SNMP] try_snmp_objects1 %s", cls)
+    for field, field_property in as_tuples(properties):
 
         # logger.info("[SNMP] try_snmp_objects2 %s %s", field, field_property.oid)
         if not field_property.oid:
@@ -98,12 +103,12 @@ def try_snmp_objects(snmp_client, cls, subindex=None, timeout=4, retries=5):
             raise SnmpRuntimeError(msg)
         except Exception, exc:
             msg = "[SNMP] try_snmp_objects Exception in client=%s oid=%s subix=%s timeout=%d retries=%d exc=(%s)%s" % (
-                snmp_client, 
+                snmp_client.host, 
                 field_property.oid, subindex,
                 timeout, retries,
                 type(exc), exc
             )
-            logger.info(msg)
+            logger.warning(msg)
             raise SnmpRuntimeError(msg)
 
         # logger.info("[SNMP] try_snmp_objects3 walk_datas %d", len(walk_datas))

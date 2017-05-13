@@ -81,6 +81,14 @@ class SnmpClient(object):
         return '%s:%s:%s' % (self.host, self.port, self.community)
 
 
+    def set_community(self, community):
+        self.auth_data = cmdgen.CommunityData('krill', community, self.version - 1)
+
+
+    def reset_community(self):
+        self.auth_data = cmdgen.CommunityData('krill', self.community, self.version - 1)
+
+
     def get(self, oid, subindex=None, timeout=3, retries=1, **kwargs):
         mibVariable = cmdgen.MibVariable(*oid)
         mibVariable.resolveWithMib(self.mibViewController)
