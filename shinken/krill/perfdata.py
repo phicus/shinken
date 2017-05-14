@@ -216,21 +216,15 @@ def process_raw_perfdata(raw_data, perf_defs):
     perfs = []
     for perf_def in perf_defs:
         pd = PerfDef(perf_def)
-        # print pd
-        # pattern, format, unit, thresholds, min, max = perf_def
 
-        # if len(thresholds) == 2:
-        #     warning, critical = thresholds
-        #     low_critical = low_warning = None
-        # if len(thresholds) == 4:
-        #     low_critical, low_warning, warning, critical = thresholds
-
-        for metric, value in raw_data.iteritems():
-            if value is None:
-                continue
+        for metric in raw_data:
+            value = raw_data[metric]
 
             it_matchs, is_root = pd.filter_metric(metric)
             if it_matchs:
+                if value is None:
+                    continue
+
                 perf = pd.get_perf(metric, value)
                 perfs.append(perf)
 
