@@ -17,43 +17,49 @@ def as_tuples(properties):
 
 
 def get_snmp_object(snmp_client, cls, subindex):
-
-    # print 'get_snmp_object1'
-    snmp_object = cls()
-    cls_properties = getattr(cls, 'properties')
+    properties = getattr(cls, 'properties')
+    timeout = getattr(cls, 'timeout', 3),
+    retries = getattr(cls, 'retries', 1),
     try:
-        for field, field_property in as_tuples(cls_properties):
-            snmp_client_method = getattr(snmp_client, field_property.method)
-            # print 'snmp_client_method', field, snmp_client_method, field_property.oid, subindex
-            if field_property.method == 'get':
-                try:
-                    get_data = snmp_client.get(
-                        oid=field_property.oid,
-                        subindex=subindex,
-                        timeout=getattr(cls, 'timeout', 3),
-                        retries=getattr(cls, 'retries', 1),
-                    )
-                    # print 'snmp_client_method field, get_data', field, get_data
-                    snmp_object.setattr(field, get_data)
-                except Exception, exc:
-                    logger.info("[SNMP] get_snmp_object get client=%s field=%s Exception=%s", snmp_client, field, exc)
-            else:
-                try:
-                    walk_datas = snmp_client.walk(
-                        oid=field_property.oid,
-                        subindex=subindex,
-                        timeout=getattr(cls, 'timeout', 3),
-                        retries=getattr(cls, 'retries', 1),
-                    )
-                    snmp_object_data = []
-                    for walk_index, walk_data in walk_datas:
-                        snmp_object_data.append((tuple(list(walk_index)[len(subindex):]), walk_data.itervalues().next()))
-                    snmp_object.setattr(field, snmp_object_data)
-                except Exception, exc:
-                    logger.info("[SNMP] get_snmp_object walk client=%s field=%s Exception=%s", snmp_client, field, exc)
+        snmp_object = try_snmp_object_properties(snmp_client, cls, properties, subindex, timeout, retries)
     except SnmpRuntimeError, exc:
         # print 'SnmpRuntimeError', exc
         pass
+    return snmp_object
+
+
+def try_snmp_object_properties(snmp_client, cls, properties, subindex=None, timeout=4, retries=5):
+    snmp_object = cls()
+
+    for field, field_property in as_tuples(properties):
+        snmp_client_method = getattr(snmp_client, field_property.method)
+        if field_property.method == 'get':
+            try:
+                get_data = snmp_client.get(
+                    oid=field_property.oid,
+                    subindex=subindex,
+                    timeout=timeout,
+                    retries=retries,
+                )
+                # print 'snmp_client_method field, get_data', field, get_data
+                snmp_object.setattr(field, get_data)
+            except Exception, exc:
+                logger.info("[SNMP] get_snmp_object get client=%s field=%s Exception=%s", snmp_client, field, exc)
+        else:
+            try:
+                walk_datas = snmp_client.walk(
+                    oid=field_property.oid,
+                    subindex=subindex,
+                    timeout=getattr(cls, 'timeout', 3),
+                    retries=getattr(cls, 'retries', 1),
+                )
+                snmp_object_data = []
+                for walk_index, walk_data in walk_datas:
+                    snmp_object_data.append((tuple(list(walk_index)[len(subindex):]), walk_data.itervalues().next()))
+                snmp_object.setattr(field, snmp_object_data)
+            except Exception, exc:
+                logger.info("[SNMP] get_snmp_object walk client=%s field=%s Exception=%s", snmp_client, field, exc)
+
     return snmp_object
 
 
