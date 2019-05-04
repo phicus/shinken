@@ -579,6 +579,12 @@ class Host(SchedulingItem):
 
         'cpe_ipleases':
             StringProp(default='', fill_brok=['full_status'], retention=True),
+
+        'cpe_router_address':
+            StringProp(default='', fill_brok=['full_status'], retention=True),
+
+        'cpe_mta_address':
+            StringProp(default='', fill_brok=['full_status'], retention=True),
     })
 
     # Hosts macros and prop that give the information
